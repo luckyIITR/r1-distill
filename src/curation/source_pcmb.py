@@ -149,23 +149,40 @@ def main(config_path: str) -> None:
             cfg["decontam"]["ngram_size"],
         )
 
-    # Sample per subject
+    # Sample per subject, dedup by stable_id across subjects
     selected = []
+    seen_ids: set[str] = set()
     counts = defaultdict(int)
+    cross_subject_dups = 0
+
+    # Oversample slightly per subject so we still hit target after dedup
+    target_per_subject = cfg["samples_per_subject"]
+    oversample = int(target_per_subject * 1.2)  # 20% buffer
+
     for subject in cfg["subjects"]:
         sub_rows = sample_subject(
             rows,
             subject,
-            cfg["samples_per_subject"],
+            oversample,  # request more, dedup down
             gpqa_grams,
             cfg["decontam"]["similarity_threshold"],
             cfg["decontam"]["ngram_size"],
             cfg["seed"],
         )
+        kept_this_subject = 0
         for r in sub_rows:
-            selected.append(to_output_schema(r, SUBJECT_MAP[subject]))
+            if kept_this_subject >= target_per_subject:
+                break
+            item = to_output_schema(r, SUBJECT_MAP[subject])
+            if item["id"] in seen_ids:
+                cross_subject_dups += 1
+                continue
+            seen_ids.add(item["id"])
+            selected.append(item)
             counts[subject] += 1
+            kept_this_subject += 1
 
+    log.info(f"Cross-subject dedup removed: {cross_subject_dups} duplicates")
     log.info(f"Final counts: {dict(counts)}")
     log.info(f"Total selected: {len(selected)}")
 

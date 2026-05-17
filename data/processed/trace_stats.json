@@ -1,0 +1,15 @@
+{
+  "total_sourced": 500,
+  "total_verified": 413,
+  "verification_rate": "82.6%",
+  "subjects": {
+    "biology": 110,
+    "physics": 107,
+    "chemistry": 102,
+    "math": 94
+  },
+  "reasoning_tokens_p50": 767,
+  "reasoning_tokens_p95": 6802,
+  "reasoning_tokens_max": 15569,
+  "suggested_training_max_length": 13312
+}

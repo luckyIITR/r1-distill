@@ -7,6 +7,21 @@ DeepSeek-R1 into open Qwen 2.5 models (7B and 32B) for self-hostable inference.
 
 > **Status:** Work in progress. Track A (Qwen-7B) is the primary deliverable; Track B (Qwen-32B) follows.
 
+## Training Data
+
+| Source | Raw | Verified | Verification Rate |
+|--------|-----|----------|-------------------|
+| s1-1K  | 1000 | 1000 | N/A (curated upstream) |
+| PCMB-500 (MMLU-Pro, decontaminated vs GPQA) | 500 | 413 | 82.6% |
+| **Total** | **1500** | **1413** | — |
+
+PCMB traces were generated using DeepSeek-R1 (`deepseek-reasoner`) as teacher,
+with strict ground-truth verification: a trace is kept only if R1's final
+answer letter matches the MMLU-Pro ground truth. Best-of-2 sampling was used
+(temperature 0.6, top_p 0.95).
+
+Generation cost: $0.57. Generation time: 38 minutes.
+
 ## Headline Results
 
 | Model | GPQA Diamond | MATH-500 | AIME 2024 |

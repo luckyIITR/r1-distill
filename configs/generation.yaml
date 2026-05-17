@@ -1,0 +1,25 @@
+# DeepSeek-R1 trace generation
+
+# IO
+input_path: data/raw/pcmb_500.jsonl
+output_path: data/traces/pcmb_traces.jsonl
+
+# Model
+model: deepseek-reasoner
+temperature: 0.6
+top_p: 0.95
+max_tokens: 16000
+
+# Best-of-N: try this many times per question before giving up
+samples_per_question: 2
+
+# Concurrency / rate limiting
+max_concurrent: 8
+requests_per_minute: 60
+
+# Cost tracking (USD per 1M tokens, as of 2026 — update if changed)
+cost_input_per_1m: 0.55
+cost_output_per_1m: 2.19
+
+# Reproducibility
+seed: 42
