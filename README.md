@@ -34,6 +34,22 @@ Generation cost: $0.57. Generation time: 38 minutes.
 **Key insight:** Biology had the lowest "deep reasoning rate" (30%), suggesting R1 treats most MCQ biology
 as recall rather than reasoning. Physics, chemistry, and math required longer chains-of-thought.
 
+**Sequence length analysis:**
+
+| Source | Median tokens | p99 tokens | Max |
+|--------|---------------|------------|-----|
+| PCMB-filtered | 2,056 | ~10,000 | 18,895 |
+| s1K-1.1 | 9,704 | ~22,000 | 26,967 |
+| **Training max_length** | — | — | **20,480** |
+
+At 20,480 tokens, 8 of 1,200 examples (0.7%) are truncated. Going higher
+inflates GPU memory cost disproportionately. ZeRO-3 + gradient checkpointing
+is required for Qwen-7B full FT at this context length.
+
+**Subject distribution** is math-dominated (77%) by design — s1K's curation
+found math to be the most transferable reasoning signal for science MCQ benchmarks.
+PCMB-200 provides the only in-domain coverage for non-math subjects.
+
 ## Headline Results
 
 | Model | GPQA Diamond | MATH-500 | AIME 2024 |

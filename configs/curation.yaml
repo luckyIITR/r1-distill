@@ -1,0 +1,10 @@
+# Build SFT training dataset by merging s1K-1.1 and filtered PCMB traces.
+
+s1k_dataset: simplescaling/s1K-1.1
+
+pcmb_traces_path: data/traces/pcmb_traces_filtered.jsonl
+pcmb_source_path: data/raw/pcmb_500.jsonl
+
+output_path: data/processed/sft_train.jsonl
+
+seed: 42
