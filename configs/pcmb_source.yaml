@@ -1,0 +1,24 @@
+# PCMB-500 sourcing config
+source_dataset: TIGER-Lab/MMLU-Pro
+source_split: test  # MMLU-Pro only has a test split; we use it as our pool
+subjects:
+  - physics
+  - chemistry
+  - biology
+  - math
+samples_per_subject: 125
+total_target: 500
+
+# Decontamination: remove questions too similar to GPQA
+decontam:
+  enabled: true
+  gpqa_dataset: Idavidrein/gpqa
+  gpqa_config: gpqa_diamond
+  similarity_threshold: 0.8  # n-gram Jaccard
+  ngram_size: 13            # standard for decontamination
+
+# Output
+output_path: data/raw/pcmb_500.jsonl
+
+# Reproducibility
+seed: 42

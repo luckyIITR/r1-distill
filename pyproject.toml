@@ -1,0 +1,50 @@
+[project]
+name = "r1-distill"
+version = "0.1.0"
+description = "Distilling DeepSeek-R1 reasoning into Qwen 2.5"
+requires-python = ">=3.10,<3.13"
+
+dependencies = [
+  "torch>=2.4.0",
+  "transformers>=4.46.0",
+  "accelerate>=1.0.0",
+  "datasets>=3.0.0",
+  "peft>=0.13.0",
+  "ms-swift>=2.5.0",
+  "deepspeed>=0.15.0",
+  "openai>=1.50.0",
+  "tenacity>=9.0.0",
+  "aiolimiter>=1.1.0",
+  "tqdm>=4.66.0",
+  "vllm>=0.6.3",
+  "lm-eval>=0.4.5",
+  "fastapi>=0.115.0",
+  "uvicorn>=0.32.0",
+  "wandb>=0.18.0",
+  "prometheus-client>=0.21.0",
+  "pydantic>=2.9.0",
+  "pydantic-settings>=2.6.0",
+  "hydra-core>=1.3.2",
+  "rich>=13.9.0",
+  "python-dotenv>=1.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "ruff>=0.7.0",
+  "pytest>=8.3.0",
+  "pytest-asyncio>=0.24.0",
+  "ipykernel>=6.29.0",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "UP", "B", "SIM"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
