@@ -22,6 +22,18 @@ answer letter matches the MMLU-Pro ground truth. Best-of-2 sampling was used
 
 Generation cost: $0.57. Generation time: 38 minutes.
 
+## Training Data
+
+| Stage | Source | Count | Notes |
+|-------|--------|-------|-------|
+| Sourced | MMLU-Pro (P/C/M/B) | 500 | Decontaminated against GPQA Diamond (n-gram Jaccard, threshold=0.8) |
+| Verified | DeepSeek-R1 traces, answer matches ground truth | 413 | 82.6% verification rate |
+| Filtered | Reasoning length ≥ 800 tokens (drops shallow traces) | **200** | Kept by subject: physics 54, chem 60, bio 38, math 48 |
+| **Final SFT** | s1-1K + PCMB-200 | **1200** | Long-CoT traces only |
+
+**Key insight:** Biology had the lowest "deep reasoning rate" (30%), suggesting R1 treats most MCQ biology
+as recall rather than reasoning. Physics, chemistry, and math required longer chains-of-thought.
+
 ## Headline Results
 
 | Model | GPQA Diamond | MATH-500 | AIME 2024 |
