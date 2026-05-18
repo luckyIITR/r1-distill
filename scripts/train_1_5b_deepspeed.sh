@@ -1,25 +1,23 @@
 #!/usr/bin/env bash
-# Single-GPU full SFT of Qwen 2.5-1.5B on 1x RTX PRO 6000 Blackwell (96GB).
-# No DeepSpeed needed — model fits comfortably with bf16 + AdamW.
-#
-# Usage:
-#   bash scripts/train_1_5b.sh              # full run
-#   SMOKE=1 bash scripts/train_1_5b.sh      # smoke test (30 steps)
+# Full fine-tuning of Qwen 2.5-1.5B with DeepSpeed ZeRO-2 on 2x L4.
 set -euo pipefail
 
 # ---------- Config ----------
 MODEL="Qwen/Qwen2.5-1.5B-Instruct"
-DATASET="/root/data/sft_train_8k.jsonl"
-OUTPUT_DIR="/root/checkpoints/qwen2.5-1.5b-r1-distill"
+DATASET="/root/data/sft_train_8k.jsonl"          # LOCAL, not /workspace
+DS_CONFIG="configs/ds_zero2.json"                 # ZeRO-2, not ZeRO-3
+OUTPUT_DIR="/root/checkpoints/qwen2.5-1.5b-r1-distill"  # LOCAL too
 RUN_NAME="qwen2.5-1.5b-r1-distill-$(date +%Y%m%d-%H%M%S)"
 
-# Verify exactly 1 GPU is visible (CUDA_VISIBLE_DEVICES=0)
 NUM_GPUS=$(nvidia-smi --list-gpus | wc -l)
-echo ">>> Detected ${NUM_GPUS} GPUs on the box"
-echo ">>> Will use ONLY GPU 0 (forced via CUDA_VISIBLE_DEVICES)"
-export CUDA_VISIBLE_DEVICES=0
+echo ">>> Detected ${NUM_GPUS} GPUs"
 
-# ---------- Attention backend ----------
+if [[ "${NUM_GPUS}" -lt 2 ]]; then
+  echo "!!! Need >=2 GPUs. Found ${NUM_GPUS}."
+  exit 1
+fi
+
+# ---------- Attention ----------
 if python -c "import flash_attn" 2>/dev/null; then
   ATTN_IMPL="flash_attn"
   echo ">>> Using flash-attn"
@@ -33,13 +31,13 @@ MAX_LENGTH=8192
 LEARNING_RATE=2e-5
 WARMUP_RATIO=0.05
 EPOCHS=5
-BATCH_PER_GPU=2          # 96GB lets us run batch=2 at 8K
-GRAD_ACCUM=4             # effective batch = 1 * 2 * 4 = 8
+BATCH_PER_GPU=1
+GRAD_ACCUM=$(( 8 / NUM_GPUS / BATCH_PER_GPU ))
 WEIGHT_DECAY=0.0001
 
 # ---------- Smoke ----------
 if [[ "${SMOKE:-0}" == "1" ]]; then
-  echo ">>> SMOKE MODE: 30 steps, no W&B"
+  echo ">>> SMOKE MODE"
   EPOCHS=1
   MAX_STEPS_FLAG="--max_steps 30"
   REPORT_TO_FLAG="--report_to none"
@@ -50,31 +48,38 @@ else
   REPORT_TO_FLAG="--report_to wandb"
 fi
 
-# ---------- Local cache (avoid /workspace NFS-like behavior) ----------
+# ---------- Local cache for HF (CRITICAL) ----------
 export HF_HOME=/root/.cache/huggingface
 export TRANSFORMERS_CACHE=/root/.cache/huggingface
 export HF_DATASETS_CACHE=/root/.cache/huggingface/datasets
 mkdir -p "${HF_HOME}"
 
-# ---------- Env ----------
+# ---------- Distributed env ----------
+export NPROC_PER_NODE=${NUM_GPUS}
 export TOKENIZERS_PARALLELISM=false
 export HF_HUB_ENABLE_HF_TRANSFER=1
 
+# NCCL diagnostics (keep until working, then remove)
+export NCCL_DEBUG=WARN
+export TORCH_NCCL_HEARTBEAT_TIMEOUT_SEC=1800
+export NCCL_TIMEOUT=1800
+# Force P2P over PCIe (these L4s have no NVLink, but P2P helps)
+export NCCL_P2P_DISABLE=0
+
 # ---------- Launch ----------
 echo ">>> Run: ${RUN_NAME}"
-echo ">>> Effective batch: $((BATCH_PER_GPU * GRAD_ACCUM))"
-echo ">>> Per-device batch: ${BATCH_PER_GPU}, grad accum: ${GRAD_ACCUM}"
-echo ">>> max_length: ${MAX_LENGTH}, epochs: ${EPOCHS}, lr: ${LEARNING_RATE}"
+echo ">>> Effective batch size: $((BATCH_PER_GPU * NUM_GPUS * GRAD_ACCUM))"
 echo ">>> Dataset: ${DATASET}"
 echo ">>> Output: ${OUTPUT_DIR}"
+echo ">>> DS config: ${DS_CONFIG}"
 
-# Note: no torchrun, no deepspeed. Single-process, single-GPU.
 swift sft \
   --model "${MODEL}" \
   --dataset "${DATASET}" \
   --tuner_type full \
   --torch_dtype bfloat16 \
   --attn_impl "${ATTN_IMPL}" \
+  --deepspeed "${DS_CONFIG}" \
   --num_train_epochs ${EPOCHS} \
   --max_length ${MAX_LENGTH} \
   --per_device_train_batch_size ${BATCH_PER_GPU} \
@@ -97,5 +102,5 @@ swift sft \
   ${REPORT_TO_FLAG}
 
 echo ">>> Training complete. Checkpoint: ${OUTPUT_DIR}"
-echo ">>> Copy to /workspace before stopping pod:"
+echo ">>> NOTE: Checkpoint is on local disk. Copy to /workspace before stopping pod:"
 echo "    cp -r ${OUTPUT_DIR} /workspace/r1-distill/checkpoints/"

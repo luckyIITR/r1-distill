@@ -1,0 +1,97 @@
+{
+  "os": "Linux-6.17.0-14-generic-x86_64-with-glibc2.39",
+  "python": "CPython 3.12.3",
+  "startedAt": "2026-05-18T11:25:56.974053Z",
+  "args": [
+    "--model",
+    "Qwen/Qwen2.5-1.5B-Instruct",
+    "--dataset",
+    "/root/data/sft_train_8k.jsonl",
+    "--tuner_type",
+    "full",
+    "--torch_dtype",
+    "bfloat16",
+    "--attn_impl",
+    "sdpa",
+    "--num_train_epochs",
+    "5",
+    "--max_length",
+    "8192",
+    "--per_device_train_batch_size",
+    "2",
+    "--gradient_accumulation_steps",
+    "4",
+    "--learning_rate",
+    "2e-5",
+    "--warmup_ratio",
+    "0.05",
+    "--weight_decay",
+    "0.0001",
+    "--lr_scheduler_type",
+    "cosine",
+    "--gradient_checkpointing",
+    "true",
+    "--save_strategy",
+    "epoch",
+    "--save_total_limit",
+    "2",
+    "--logging_steps",
+    "5",
+    "--output_dir",
+    "/root/checkpoints/qwen2.5-1.5b-r1-distill",
+    "--run_name",
+    "qwen2.5-1.5b-r1-distill-20260518-112535",
+    "--seed",
+    "42",
+    "--packing",
+    "false",
+    "--dataset_num_proc",
+    "2",
+    "--use_hf",
+    "true",
+    "--report_to",
+    "wandb"
+  ],
+  "program": "/workspace/r1-distill/.venv/lib/python3.12/site-packages/swift/cli/sft.py",
+  "codePath": ".venv/lib/python3.12/site-packages/swift/cli/sft.py",
+  "codePathLocal": ".venv/lib/python3.12/site-packages/swift/cli/sft.py",
+  "git": {
+    "remote": "https://github.com/luckyIITR/r1-distill.git",
+    "commit": "94d29db6df84d5cf2d093ae3b80474b80347415d"
+  },
+  "email": "luckykushwaha56@gmail.com",
+  "root": "/workspace/r1-distill",
+  "host": "841afb5b30b5",
+  "executable": "/workspace/r1-distill/.venv/bin/python",
+  "cpu_count": 192,
+  "cpu_count_logical": 384,
+  "gpu": "NVIDIA RTX PRO 6000 Blackwell Server Edition",
+  "gpu_count": 2,
+  "disk": {
+    "/": {
+      "total": "53687091200",
+      "used": "16110743552"
+    }
+  },
+  "memory": {
+    "total": "1622814846976"
+  },
+  "gpu_nvidia": [
+    {
+      "name": "NVIDIA RTX PRO 6000 Blackwell Server Edition",
+      "memoryTotal": "102641958912",
+      "cudaCores": 24064,
+      "architecture": "Blackwell",
+      "uuid": "GPU-88d90f26-4a32-5294-d3b8-dab738802e33"
+    },
+    {
+      "name": "NVIDIA RTX PRO 6000 Blackwell Server Edition",
+      "memoryTotal": "102641958912",
+      "cudaCores": 24064,
+      "architecture": "Blackwell",
+      "uuid": "GPU-b9f2557b-85ae-b605-ec89-d959fbab03a2"
+    }
+  ],
+  "cudaVersion": "13.0",
+  "writerId": "aoixter8zqqhlsqcx7pxazn62i9tv5jl"
+}
