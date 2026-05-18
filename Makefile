@@ -11,6 +11,9 @@ generate-traces:
 curate:
 	python -m src.curation.build_dataset --config configs/curation.yaml
 
+train-1_5b:
+	bash scripts/train_1_5b.sh
+
 train-7b:
 	bash scripts/train_7b.sh
 
